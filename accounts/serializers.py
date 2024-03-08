@@ -80,7 +80,7 @@ class UserChangePasswordSerializer(serializers.ModelSerializer):
             return attrs
         else :  raise serializers.ValidationError('the passowrd in none')
     
-     # this validate function is used of checkin a condition needed while creating a new user 
+     # this validate function is used for checking a condition needed while creating a new user 
         # the condition  can be like the age of the user must be more than 0 
         
     
