@@ -22,6 +22,9 @@ class UserRegistrationSerializers(serializers.ModelSerializer):
             'password':{'write_only':True}
             
             }
+        
+        
+        
     def validate(self,attrs):
         # if attrs.get("password")!=attrs.get("password1"):
         #     raise serializers.ValidationError('both the paswords doesnt match')
@@ -37,6 +40,15 @@ class UserRegistrationSerializers(serializers.ModelSerializer):
         user.save()
         return user
     # this method is used when we are creating the new user 
+#     For JWT token registration, you might use the create() method to perform tasks such as:
+
+# Validating the incoming data: Ensure that the data provided in the registration request is valid before creating a new user.
+
+# Creating a new user object: Create a new user instance based on the validated data from the request.
+
+# Generating JWT tokens: After creating the user, generate JWT tokens (access token and refresh token) and include them in the response.
+
+# Additional processing: Perform any additional processing or tasks required for registration, such as sending a confirmation email, logging events, etc.
     
     
 class UserLoginSerializer(serializers.ModelSerializer):
@@ -92,22 +104,31 @@ class UserChangePasswordSerializer(serializers.ModelSerializer):
     
 class SendPasswordResetEmailSerializer(serializers.Serializer):
     username=serializers.CharField(max_length=255)
+    # the username will be the thing we will be asking for 
     class Meta:
         fields=["username"]# fields to display
     def validate(self, attrs):
         username=attrs.get("username")
+        # we will get it from the incoming request.data
         if  User.objects.filter(username=username).exists():
+            
             user=User.objects.get(username=username)
             
             uid=urlsafe_base64_encode(force_bytes(user.pk))
+            # encoding the user's id to be able to sent by the link 
+            
             token=PasswordResetTokenGenerator().make_token(user)
+            # genrating token for user 
             link="http://localhost:8000/apiWork/reset-password/"+uid+"/"+token
             print(link)
-            Util.send_mail({
+             # the link will be through the email 
+             #TODO: make email thing work 
+            Util.send_new_mail({
                 "subject":"reset your password",
                 "to_email":"haharshit22@gmail.com",
                 "body":"Click the following link   "+link
             })
+            # return attrs
             return attrs
         else:
             raise  serializers.ValidationError('User isnot registered')
@@ -119,8 +140,9 @@ class SendPasswordResetEmailSerializer(serializers.Serializer):
 
 
 class UserPasswordResetSerializer(serializers.Serializer):
-    
+    # this serializer is pinged by the reset email
     password=serializers.CharField(max_length=255,style={'input_type':'password'},write_only=True)# this is the field we are going take as input 
+    
     
     class Meta:
         model=User
@@ -130,15 +152,19 @@ class UserPasswordResetSerializer(serializers.Serializer):
         password=attrs.get("password")
         uid=self.context.get("uid")
         token=self.context.get("token")
+        # we are getting these fields from request data and database
+    
         print(uid,token,password)
         try:
             if password is not None:
                 id=smart_str( urlsafe_base64_decode(uid))
+                # decoding the id we get through the send email 
                 user= User.objects.get(id=id)
+                
                 if not PasswordResetTokenGenerator().check_token(user,token):
                     raise serializers.ValidationError('Token is not valid')
                 # the exceptions we are raising all the code are being handled by the django builtin exception handler
-                print(user,"lololololololololol")
+                print(user)
                 user.set_password(password)
                 user.save()
                 return attrs

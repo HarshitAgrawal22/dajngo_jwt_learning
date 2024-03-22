@@ -1,14 +1,14 @@
-from  django.core.mail import EmailMessage
+from  django.core.mail import send_mail
 
 import os 
 class Util:
     @staticmethod
-    def send_mail(data):
-        email=EmailMessage(
+    def send_new_mail(data):
+        send_mail(
             subject=data["subject"],
-            body=data["body"],
-            from_email=os.environ.get("EMAIL_HOST_USER"),
-            to=[data["to_email"]]
+            message=data["body"],
+            from_email='test22032005@gmail.com',
+            recipient_list=["haharshit22@gmail.com",]
             
         )
-        email.send()
+        

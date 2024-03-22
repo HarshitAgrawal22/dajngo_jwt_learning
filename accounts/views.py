@@ -8,7 +8,6 @@ from accounts.serializers import *
 from django.contrib.auth import authenticate
 from .renderers import UserRenderer
 from rest_framework.permissions import IsAuthenticated
-# Create your views here.
 
 
 def get_tokens(user)->dict:# this is the method for getting  tokens for a user to autherize
@@ -41,7 +40,8 @@ class UserRegistrationView(APIView):
             
             "tokens":get_tokens(user)
             # here we are using the method we created at the top for getting  the access and refresh token for the user 
-                     },status=status.HTTP_201_CREATED)
+                     },status=status.HTTP_201_CREATED
+                            )
         
         
         
@@ -68,7 +68,7 @@ class UserLoginView(APIView):
             user = authenticate(username=username, password=password)
             # normally authenticating the user by the authenticate method 
             if user is not None:
-                return Response({'token': "hjk","tokens":get_tokens(user)}, status=status.HTTP_200_OK)
+                return Response({"tokens":get_tokens(user)}, status=status.HTTP_200_OK)
             # if the user is not none then we are gettings its token and adding it to our response
             else:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -153,6 +153,7 @@ class SendPasswordResetEmailView(APIView):
     renderer_classes=[UserRenderer]
     def post(self,request):
         serializer=SendPasswordResetEmailSerializer(data=request.data)
+        # will activate the serializer
         if(serializer.is_valid(raise_exception=True)):
             return Response({"msg":"the email has been sent please  check your inbox"},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_404_NOT_FOUND)
